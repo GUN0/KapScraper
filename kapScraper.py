@@ -6,25 +6,32 @@ from datetime import datetime, timedelta
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+
+options = Options()
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--window-size=1920,1080")
 
 with open("/home/gun/Sinai.txt", "r") as f:
     STOCKS = ast.literal_eval(f.read())
 
 # List of years on the website
 YEARS = [
-    # "/html/body/div[3]/div[3]/ul/li[6]/p",
-    # "/html/body/div[3]/div[3]/ul/li[7]/p",
-    # "/html/body/div[3]/div[3]/ul/li[8]/p",
-    # "/html/body/div[3]/div[3]/ul/li[9]/p",
-    # "/html/body/div[3]/div[3]/ul/li[10]/p",
+    "/html/body/div[3]/div[3]/ul/li[6]/p",
+    "/html/body/div[3]/div[3]/ul/li[7]/p",
+    "/html/body/div[3]/div[3]/ul/li[8]/p",
+    "/html/body/div[3]/div[3]/ul/li[9]/p",
+    "/html/body/div[3]/div[3]/ul/li[10]/p",
     "/html/body/div[3]/div[3]/ul/li[11]/p",
-    # "/html/body/div[3]/div[3]/ul/li[12]/p",
-    # "/html/body/div[3]/div[3]/ul/li[13]/p",
-    # "/html/body/div[3]/div[3]/ul/li[14]/p",
+    "/html/body/div[3]/div[3]/ul/li[12]/p",
+    "/html/body/div[3]/div[3]/ul/li[13]/p",
+    "/html/body/div[3]/div[3]/ul/li[14]/p",
 ]
 
 bilanco_pattern1 = re.compile(r"general_role_21\d+-row-\d+ data-input-row alternate-row presentation-enabled")
@@ -45,8 +52,7 @@ for stock in STOCKS:
     list_of_nakitAkis_dfs = []
     fr_release_date = []
 
-    driver = webdriver.Chrome()
-    driver.maximize_window()
+    driver = webdriver.Chrome(options=options)
     driver.get("https://www.kap.org.tr/tr")
 
     # Wait for page to load!
@@ -62,7 +68,7 @@ for stock in STOCKS:
     except:
         print("Couldn't find stock name")
         driver.quit()
-    time.sleep(1)
+    time.sleep(2)
 
     # Enters into the searched stock's page
     try:
@@ -73,6 +79,7 @@ for stock in STOCKS:
     except:
         print("Error loading stock's page")
         driver.quit()
+    time.sleep(2)
 
     # Clicks to bildirimler tab
     try:
@@ -81,31 +88,10 @@ for stock in STOCKS:
     except:
         print("Couldn't find notifications-tab")
         driver.quit()
-
-    # # Clicks the SELECT DATE list
-    # try:
-    #     element = WebDriverWait(driver, 10).until(
-    #         EC.presence_of_element_located(
-    #             (
-    #                 By.XPATH,
-    #                 '//*[@id="notifications"]/div/div/div/div/div[1]/div/div[1]/div[1]/div/div/div[1]',
-    #             )
-    #         )
-    #     )
-    #     driver.find_element(
-    #         By.XPATH,
-    #         '//*[@id="notifications"]/div/div/div/div/div[1]/div/div[1]/div[1]/div/div/div[1]',
-    #     ).click()
-    # except:
-    #     print("Couldn't select date")
-    #     driver.quit()
+    time.sleep(2)
 
     # Iterates over each year
     for year in YEARS:
-        bilanco_elements = []
-        kar_zarar_elements = []
-        nakit_akis_elements = []
-
         # Clicks the SELECT DATE list
         try:
             element = WebDriverWait(driver, 10).until(
@@ -123,6 +109,7 @@ for stock in STOCKS:
         except:
             print("Couldn't select date")
             driver.quit()
+        time.sleep(2)
 
         # Scrolls to year
         scroll = driver.find_element(By.XPATH, year)
@@ -130,6 +117,7 @@ for stock in STOCKS:
 
         # Clicks to the required year
         driver.find_element(By.XPATH, year).click()
+        time.sleep(2)
 
         # Clicks notifiaction types list
         try:
@@ -148,6 +136,7 @@ for stock in STOCKS:
         except:
             print("Notification types list couldn't be found")
             driver.quit()
+        time.sleep(2)
 
         # Clicks to Finansal Rapor notification type
         try:
@@ -166,6 +155,7 @@ for stock in STOCKS:
         except:
             print("Couldn't click Finansal Rapor notification from the list")
             driver.quit()
+        time.sleep(2)
 
         # Clicks to search button
         try:
@@ -184,6 +174,7 @@ for stock in STOCKS:
         except:
             print("Couldn't click search button")
             driver.quit()
+        time.sleep(2)
 
         # Clicks to Finansal Rapor notification type
         try:
@@ -202,20 +193,26 @@ for stock in STOCKS:
         except:
             print("Couldn't click show 250 button")
             driver.quit()
+        time.sleep(1)
 
         # Find all FR's in the page
         FRS = driver.find_elements(By.XPATH, "//td[text()='Finansal Rapor']")
         length_FRS = len(FRS)
+
         # Break the loop if current year has less than 4 FR's
         if length_FRS < 4:
             break
 
-        # Scroll to the middle of the page
-        scroll_down_to_middle = driver.execute_script("window.scrollBy(0, 500);")
-        time.sleep(0.5)
-
         # Iterates over each FR
         for i in range(length_FRS):
+            bilanco_elements = []
+            kar_zarar_elements = []
+            nakit_akis_elements = []
+
+            # Scrolls down to Fr on each iteration
+            scroll_down_to_middle = driver.execute_script("window.scrollBy(0,200);")
+            time.sleep(1)
+
             # Get the FRS again for looping and page content load
             FRS = driver.find_elements(By.XPATH, "//td[text()='Finansal Rapor']")
 
@@ -239,7 +236,7 @@ for stock in STOCKS:
             for row in bilancoRows:
                 num = row.find_all("td")
 
-                if len(num[-3].get_text()) > 3:
+                if len(num[-3].get_text()) > 6:
                     column = -3
                 else:
                     column = -2
@@ -307,6 +304,7 @@ for stock in STOCKS:
 
                 nakit_akis_elements.append([turkish_text, cell_number])
 
+            time.sleep(1)
             # Find the exact release date of FR from notification_table
             notification_table = [stripped_text.get_text() for stripped_text in soup.find_all("div", class_="text-15")]
 
@@ -323,16 +321,16 @@ for stock in STOCKS:
 
             # Add each element to its dataframe, set column as index and remove duplicated rows
             bilanco_df = pd.DataFrame(bilanco_elements, columns=["Finansal Durum Tablosu (Bilanço)", date])
-            bilanco_df.set_index("Finansal Durum Tablosu (Bilanço)", inplace=True)
-            bilanco_df = bilanco_df[~bilanco_df.index.duplicated(keep="first")]
+            # bilanco_df.set_index("Finansal Durum Tablosu (Bilanço)", inplace=True)
+            # bilanco_df = bilanco_df[~bilanco_df.index.duplicated(keep="first")]
 
             karZarar_df = pd.DataFrame(kar_zarar_elements, columns=["Kar Zarar Tablosu", date])
-            karZarar_df.set_index("Kar Zarar Tablosu", inplace=True)
-            karZarar_df = karZarar_df[~karZarar_df.index.duplicated(keep="first")]
+            # karZarar_df.set_index("Kar Zarar Tablosu", inplace=True)
+            # karZarar_df = karZarar_df[~karZarar_df.index.duplicated(keep="first")]
 
             nakitAkis_df = pd.DataFrame(nakit_akis_elements, columns=["Nakit Akış Tablosu", date])
-            nakitAkis_df.set_index("Nakit Akış Tablosu", inplace=True)
-            nakitAkis_df = nakitAkis_df[~nakitAkis_df.index.duplicated(keep="first")]
+            # nakitAkis_df.set_index("Nakit Akış Tablosu", inplace=True)
+            # nakitAkis_df = nakitAkis_df[~nakitAkis_df.index.duplicated(keep="first")]
 
             list_of_bilanco_dfs.append(bilanco_df)
             list_of_karZarar_dfs.append(karZarar_df)
@@ -367,7 +365,7 @@ for stock in STOCKS:
             time.sleep(0.5)
 
         # Scroll to top of the page
-        scroll_up = driver.execute_script("window.scrollBy(0, -500);")
+        scroll_up = driver.execute_script("window.scrollBy(0,-1299);")
         time.sleep(1)
 
     # Concatanates the list of datarames
@@ -390,5 +388,4 @@ for stock in STOCKS:
 
     driver.quit()
     time.sleep(2)
-    break
 print(skipped_stocks)
