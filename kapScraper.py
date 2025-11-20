@@ -262,6 +262,20 @@ for stock in STOCKS:
             # Get kar zarar table related elements
             karZararRows = soup.find_all("tr", class_=karZararPattern1) + soup.find_all("tr", class_=karZararPattern2)
 
+            # Dynamic column search
+            karZararColumn = 0
+
+            for row in karZararRows:
+                num = row.find_all("td")
+
+                if len(num[-4].get_text()) >= 7:
+                    karZararColumn = -4
+                elif len(num[-3].get_text()) > 7:
+                    karZararColumn = -3
+                else:
+                    karZararColumn = -2
+                break
+
             for kz in karZararRows:
                 turkish_elements = kz.find("div", class_="gwt-Label multi-language-content content-tr")
 
@@ -271,7 +285,7 @@ for stock in STOCKS:
                     continue
 
                 numbers = kz.find_all("td")
-                cell_number = numbers[-4].get_text()
+                cell_number = numbers[karZararColumn].get_text()
                 if cell_number != "":
                     # Convert string numbers to int
                     cell_number = int(cell_number.replace(".", ""))
@@ -304,9 +318,10 @@ for stock in STOCKS:
 
                 nakit_akis_elements.append([turkish_text, cell_number])
 
-            time.sleep(1)
+            time.sleep(5)
             # Find the exact release date of FR from notification_table
             notification_table = [stripped_text.get_text() for stripped_text in soup.find_all("div", class_="text-15")]
+            time.sleep(5)
 
             full_date, year, period_type = notification_table[0], notification_table[2], notification_table[3]
             full_date = full_date[:10].replace(".", "/")
@@ -321,16 +336,16 @@ for stock in STOCKS:
 
             # Add each element to its dataframe, set column as index and remove duplicated rows
             bilanco_df = pd.DataFrame(bilanco_elements, columns=["Finansal Durum Tablosu (Bilanço)", date])
-            # bilanco_df.set_index("Finansal Durum Tablosu (Bilanço)", inplace=True)
-            # bilanco_df = bilanco_df[~bilanco_df.index.duplicated(keep="first")]
+            bilanco_df.set_index("Finansal Durum Tablosu (Bilanço)", inplace=True)
+            bilanco_df = bilanco_df[~bilanco_df.index.duplicated(keep="first")]
 
             karZarar_df = pd.DataFrame(kar_zarar_elements, columns=["Kar Zarar Tablosu", date])
-            # karZarar_df.set_index("Kar Zarar Tablosu", inplace=True)
-            # karZarar_df = karZarar_df[~karZarar_df.index.duplicated(keep="first")]
+            karZarar_df.set_index("Kar Zarar Tablosu", inplace=True)
+            karZarar_df = karZarar_df[~karZarar_df.index.duplicated(keep="first")]
 
             nakitAkis_df = pd.DataFrame(nakit_akis_elements, columns=["Nakit Akış Tablosu", date])
-            # nakitAkis_df.set_index("Nakit Akış Tablosu", inplace=True)
-            # nakitAkis_df = nakitAkis_df[~nakitAkis_df.index.duplicated(keep="first")]
+            nakitAkis_df.set_index("Nakit Akış Tablosu", inplace=True)
+            nakitAkis_df = nakitAkis_df[~nakitAkis_df.index.duplicated(keep="first")]
 
             list_of_bilanco_dfs.append(bilanco_df)
             list_of_karZarar_dfs.append(karZarar_df)
@@ -387,5 +402,5 @@ for stock in STOCKS:
         skipped_stocks.append(stock)
 
     driver.quit()
-    time.sleep(2)
+    time.sleep(5)
 print(skipped_stocks)
