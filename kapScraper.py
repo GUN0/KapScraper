@@ -209,12 +209,12 @@ for stock in STOCKS:
             kar_zarar_elements = []
             nakit_akis_elements = []
 
-            # Scrolls down to Fr on each iteration
-            scroll_down_to_middle = driver.execute_script("window.scrollBy(0,200);")
-            time.sleep(1)
-
             # Get the FRS again for looping and page content load
             FRS = driver.find_elements(By.XPATH, "//td[text()='Finansal Rapor']")
+
+            # Scroll to the specific FR element to ensure it's in view
+            driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", FRS[i])
+            time.sleep(1)
 
             FRS[i].click()
             time.sleep(1)
@@ -235,8 +235,7 @@ for stock in STOCKS:
 
             for row in bilancoRows:
                 num = row.find_all("td")
-
-                if len(num[-3].get_text()) > 6:
+                if len(num[-3].get_text().strip()) > 6:
                     column = -3
                 else:
                     column = -2
@@ -318,10 +317,15 @@ for stock in STOCKS:
 
                 nakit_akis_elements.append([turkish_text, cell_number])
 
-            time.sleep(5)
+            # Wait for notification metadata to be present before scraping
+            WebDriverWait(driver, 15).until(lambda d: len(d.find_elements(By.CSS_SELECTOR, "div.text-15")) >= 4)
+
+            # Re-fetch page content after waiting
+            page_content = driver.page_source
+            soup = BeautifulSoup(page_content, "html.parser")
+
             # Find the exact release date of FR from notification_table
             notification_table = [stripped_text.get_text() for stripped_text in soup.find_all("div", class_="text-15")]
-            time.sleep(5)
 
             full_date, year, period_type = notification_table[0], notification_table[2], notification_table[3]
             full_date = full_date[:10].replace(".", "/")
@@ -380,7 +384,7 @@ for stock in STOCKS:
             time.sleep(0.5)
 
         # Scroll to top of the page
-        scroll_up = driver.execute_script("window.scrollBy(0,-1299);")
+        scroll_up = driver.execute_script("window.scrollBy(0,-9999);")
         time.sleep(1)
 
     # Concatanates the list of datarames
