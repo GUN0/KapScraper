@@ -9,7 +9,7 @@ sorted_directory = sorted(os.listdir(bilanco_directory))
 kar_zarar_directory = "/home/gun/Documents/KarZararTabloları/"
 nakit_akis_directory = "/home/gun/Documents/NakitAkışTabloları/"
 
-for file in sorted_directory[:1]:
+for file in sorted_directory:
     print(file)
     df = pd.read_excel(f"{bilanco_directory}{file}")
     df = df.set_index("Finansal Durum Tablosu (Bilanço)")
@@ -69,7 +69,7 @@ for file in sorted_directory[:1]:
     # show(kar_zarar_yillik_df, subprocess=False, open_browser=True)
 
     average_df.to_excel(f"/home/gun/Documents/DüzenlenmişBilanço/{file}", index=True)
-    kar_zarar_ceyreklik_df_transformed.to_excel(f"/home/gun/Documents/KarZararTablolarıÇeyreklik/{file}", index=True)
-    kar_zarar_yillik_df.to_excel(f"/home/gun/Documents/KarZararTablolarıYıllık/{file}", index=True)
-    nakit_akis_ceyreklik_df_transformed.to_excel(f"/home/gun/Documents/NakitAkışTablolarıÇeyreklik/{file}", index=True)
-    nakit_akis_yillik_df.to_excel(f"/home/gun/Documents/NakitAkışTablolarıYıllık/{file}", index=True)
+    # kar_zarar_ceyreklik_df_transformed.to_excel(f"/home/gun/Documents/KarZararTablolarıÇeyreklik/{file}", index=True)
+    # kar_zarar_yillik_df.to_excel(f"/home/gun/Documents/KarZararTablolarıYıllık/{file}", index=True)
+    # nakit_akis_ceyreklik_df_transformed.to_excel(f"/home/gun/Documents/NakitAkışTablolarıÇeyreklik/{file}", index=True)
+    # nakit_akis_yillik_df.to_excel(f"/home/gun/Documents/NakitAkışTablolarıYıllık/{file}", index=True)
